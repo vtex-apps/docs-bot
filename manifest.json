@@ -1,0 +1,36 @@
+{
+  "name": "docs-bot",
+  "vendor": "vtex",
+  "version": "0.1.0",
+  "title": "VTEX IO Docs Bot",
+  "description": "A bot responsible for VTEX IO documentation scalability",
+  "mustUpdateAt": "2020-08-06",
+  "categories": [],
+  "dependencies": {},
+  "builders": {
+    "node": "4.x"
+  },
+  "scripts": {
+    "prereleasy": "bash lint.sh"
+  },
+  "credentialType": "absolute",
+  "policies": [
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "httpstat.us",
+        "path": "*"
+      }
+    },
+    {
+      "name": "colossus-fire-event"
+    },
+    {
+      "name": "colossus-write-logs"
+    }
+  ],
+  "registries": [
+    "smartcheckout"
+  ],
+  "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema"
+}
