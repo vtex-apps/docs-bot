@@ -2,7 +2,7 @@ import {
   json
 } from 'co-body'
 
-const ANSWER_LATER_PATTERN = /\[x\] I/g
+const ANSWER_LATER_PATTERN = '[x] I'
 
 export const handleEvent = async (ctx: Context, next: () => Promise < any > ) => {
   const {
@@ -16,10 +16,14 @@ export const handleEvent = async (ctx: Context, next: () => Promise < any > ) =>
     action,
   } = body
 
+  console.log(action, event)
+
   if (event === 'pull_request' && action === 'opened') {
     handleNewPullRequest(body, ctx.clients.github)
   } else if (event === 'issue_comment' && action === 'edited') {
     handleCommentEdit(body, ctx.clients.github)
+  } else if (event === 'integration_installation_repositories' && action === 'added' ) {
+    handleNewRepo(body, ctx.clients.github)
   }
 
   ctx.status = 200
@@ -27,6 +31,32 @@ export const handleEvent = async (ctx: Context, next: () => Promise < any > ) =>
 
   await next()
 
+}
+
+const handleNewRepo = async (
+  reqBody: any,
+  gitClient: any
+): Promise < boolean > => {
+  const {
+    sender: {
+      login: userLogin,
+    },
+    repositories_added,
+  } = reqBody
+
+  const {
+    full_name: repoName,
+  } = repositories_added[0]
+
+  const docIssue = await gitClient.createNewIssue(
+    'vtex-apps/io-documentation',
+    `New repo created: ${repoName}`,
+    `@${userLogin} just created a new repo: [${repoName}](https://github.com/${repoName})\n` +
+    `Might be good to check if it's an app that should be added to **IODocs components** and if this repo has a **/docs** folder`,
+    ['new-repo'])
+
+  console.log(docIssue)
+  return true
 }
 
 const handleNewPullRequest = async (
@@ -78,8 +108,11 @@ const handleCommentEdit = async (
     },
   } = reqBody
 
-  if (commentOwner !== 'vtex-io-docs-bot[bot]' ||
-    !ANSWER_LATER_PATTERN.test(body)) {
+  console.info(body)
+  console.log(body.includes(ANSWER_LATER_PATTERN))
+
+  if (commentOwner !== 'vtex-io-docs-bot[bot]' || !body.includes(ANSWER_LATER_PATTERN)) {
+    console.log('returning')
     return true
   }
 

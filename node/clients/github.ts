@@ -36,8 +36,8 @@ g9DsaiwvD7dMI8/i5ZzNE0HZFlgw+g8WMtjjJXuIBXolZ19WGxUIOLyf/lVy/Nqh
 QgBi9RnxgZrhrit1RNrEcAwiarOl+K1QoDoGq87izHol0WQ2YeLM
 -----END RSA PRIVATE KEY-----
 `
-
-  private clientID = 37831
+  private installationID = 1428901
+  private clientID = 38075
 
   constructor(
     context: IOContext,
@@ -57,7 +57,7 @@ QgBi9RnxgZrhrit1RNrEcAwiarOl+K1QoDoGq87izHol0WQ2YeLM
         body,
       }, {
         headers: {
-          'Authorization': `token ${await this.getAccessToken(1371357)}`,
+          'Authorization': `token ${await this.getAccessToken(this.installationID)}`,
         },
         metric: 'write-pr-comments',
       })
@@ -71,7 +71,7 @@ QgBi9RnxgZrhrit1RNrEcAwiarOl+K1QoDoGq87izHol0WQ2YeLM
         title,
       }, {
         headers: {
-          'Authorization': `token ${await this.getAccessToken(1371357)}`,
+          'Authorization': `token ${await this.getAccessToken(this.installationID)}`,
         },
         metric: 'create-issue',
       })
