@@ -63,7 +63,7 @@ QgBi9RnxgZrhrit1RNrEcAwiarOl+K1QoDoGq87izHol0WQ2YeLM
       })
   }
 
-  public async createNewIssue(repo: string, title: string, body: string, labels?: [string]): Promise < IOResponse < string >> {
+  public async createNewIssue(repo: string, title: string, body: string, labels ? : [string]): Promise < IOResponse < string >> {
     return this.http.post(
       `/repos/${repo}/issues`, {
         body,
@@ -75,6 +75,13 @@ QgBi9RnxgZrhrit1RNrEcAwiarOl+K1QoDoGq87izHol0WQ2YeLM
         },
         metric: 'create-issue',
       })
+  }
+
+  public async getFileContents(repo: string, filePath: string): Promise < string > {
+    return atob(await this.http.get(
+      `/repos/${repo}/contents${filePath}`, {
+        metric: 'read-file',
+      }))
   }
 
   private async getAccessToken(installation: number): Promise < string > {

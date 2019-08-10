@@ -108,9 +108,6 @@ const handleCommentEdit = async (
     },
   } = reqBody
 
-  console.info(body)
-  console.log(body.includes(ANSWER_LATER_PATTERN))
-
   if (commentOwner !== 'vtex-io-docs-bot[bot]' || !body.includes(ANSWER_LATER_PATTERN)) {
     console.log('returning')
     return true
@@ -128,6 +125,13 @@ const handleCommentEdit = async (
     repoName,
     prNumber,
     `Beep boop :robot: That\'s ok, I created an [issue](${docIssue.html_url}) for this so we don\'t forget`)
+
+  const readme = await gitClient.getFileContents(
+    repoName,
+    '/docs/README.md'
+  )
+
+  console.log(readme)
 
   return true
 }
