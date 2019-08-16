@@ -22,7 +22,7 @@ export const handleEvent = async (ctx: Context, next: () => Promise < any > ) =>
     handleNewPullRequest(body, ctx.clients.github)
   } else if (event === 'issue_comment' && action === 'edited') {
     handleCommentEdit(body, ctx.clients.github)
-  } else if (event === 'integration_installation_repositories' && action === 'added' ) {
+  } else if (event === 'integration_installation_repositories' && action === 'added') {
     handleNewRepo(body, ctx.clients.github)
   }
 
@@ -113,12 +113,13 @@ const handleCommentEdit = async (
     return true
   }
 
+  const issueLinkLabel = `[${issueTitle}](${issueUrl})`
   const docIssue = await gitClient.createNewIssue(
     'vtex-apps/io-documentation',
     `Upcoming docs in ${repoName}`,
     `@${editor} is going to update soon a new feature/enhancement on [${repoName}](${repoUrl})\n` +
     `For more information go to:\n` +
-    `[${issueTitle}](${issueUrl})`,
+    issueLinkLabel,
     ['upcoming-docs'])
 
   await gitClient.writeComment(
@@ -131,7 +132,19 @@ const handleCommentEdit = async (
     '/docs/README.md'
   )
 
-  console.log(readme)
+  let updateContent = readme.content
+
+  updateContent +=
+    `${!updateContent.includes('Upcoming docs') ? `\n\n**Upcoming docs:**\n` : ''}` +
+    `\n - ${issueLinkLabel}`
+
+  await gitClient.updateFileContents(
+    repoName,
+    '/docs/README.md',
+    'Upcoming docs',
+    updateContent,
+    readme.sha
+  )
 
   return true
 }
