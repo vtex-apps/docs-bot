@@ -1,10 +1,12 @@
 import {
   json
 } from 'co-body'
+import Github from '../clients/github'
 
 const ANSWER_LATER_PATTERN = '[x] I'
+let appPem: any = null
 
-export const handleEvent = async (ctx: Context, next: () => Promise < any > ) => {
+export async function handleEvent (ctx: Context, next: () => Promise < any > ) {
   const {
     header: {
       'x-github-event': event,
@@ -16,76 +18,100 @@ export const handleEvent = async (ctx: Context, next: () => Promise < any > ) =>
     action,
   } = body
 
-  console.log(action, event)
+  if (!appPem) {
+    appPem = (await ctx.clients.vbase.getJSON(
+      'docs-bot', 'configs'
+    ) as {pem: string}).pem
+  }
+
+  ctx.clients.github.setAppPEM(appPem)
 
   if (event === 'pull_request' && action === 'opened') {
     handleNewPullRequest(body, ctx.clients.github)
   } else if (event === 'issue_comment' && action === 'edited') {
     handleCommentEdit(body, ctx.clients.github)
-  } else if (event === 'integration_installation_repositories' && action === 'added') {
-    handleNewRepo(body, ctx.clients.github)
   }
 
   ctx.status = 200
   ctx.body = 'ok'
 
   await next()
-
 }
 
-const handleNewRepo = async (
-  reqBody: any,
-  gitClient: any
-): Promise < boolean > => {
-  const {
-    sender: {
-      login: userLogin,
-    },
-    repositories_added,
-  } = reqBody
+// const handleNewRepo = async (
+//   reqBody: any,
+//   gitClient: Github
+// ): Promise < boolean > => {
+//   const {
+//     sender: {
+//       login: userLogin,
+//     },
+//     repositories_added,
+//   } = reqBody
 
-  const {
-    full_name: repoName,
-  } = repositories_added[0]
+//   const {
+//     full_name: repoName,
+//   } = repositories_added[0]
 
-  const docIssue = await gitClient.createNewIssue(
-    'vtex-apps/io-documentation',
-    `New repo created: ${repoName}`,
-    `@${userLogin} just created a new repo: [${repoName}](https://github.com/${repoName})\n` +
-    `Might be good to check if it's an app that should be added to **IODocs components** and if this repo has a **/docs** folder`,
-    ['new-repo'])
+//   const docIssue = await gitClient.createNewIssue(
+//     'vtex-apps/io-documentation',
+//     `New repo created: ${repoName}`,
+//     `@${userLogin} just created a new repo: [${repoName}](https://github.com/${repoName})\n` +
+//     `Might be good to check if it's an app that should be added to **IODocs components** and if this repo has a **/docs** folder`,
+//     ['new-repo'])
 
-  console.log(docIssue)
-  return true
-}
+//   console.log(docIssue)
+//   return true
+// }
 
 const handleNewPullRequest = async (
   reqBody: any,
-  gitClient: any
+  gitClient: Github
 ): Promise < boolean > => {
   const {
     pull_request: {
       number: prNumber,
+      head: {
+        sha,
+      },
     },
     repository: {
       full_name: repoName,
     },
   } = reqBody
 
-  gitClient.writeComment(
-    repoName,
-    prNumber,
-    'Beep boop :robot: Did you remember to update this app\'s docs?\n' +
-    '- [ ] Yes, I did! :tada::tada::tada:\n' +
-    '- [ ] There\'s nothing new to document :thinking:\n' +
-    '- [ ] I\'ll do it later :disappointed:')
+  const changedDocs = checkDocsChanges(await gitClient.getPRFileChanges(repoName, prNumber))
+
+  if (!changedDocs) {
+    gitClient.writeComment(
+      repoName,
+      prNumber,
+      'Beep boop :robot:\n\n I noticed you didn\'t make any changes on the documentation\n' +
+      '- [ ] There\'s nothing new to document :thinking:\n' +
+      '- [ ] I\'ll do it later :disappointed:')
+
+    await gitClient.createCommitStatus(
+      repoName,
+      'Forgot to select the reason for not updating docs',
+      'vtex-io/docs-outdated-select',
+      'failure',
+      sha
+    )
+  }
+
+  else {
+    gitClient.writeComment(
+      repoName,
+      prNumber,
+      'Beep boop :robot:\n\n Thank you so much for keeping our documentation up-to-date :heart:')
+  }
 
   return true
 }
 
 const handleCommentEdit = async (
   reqBody: any,
-  gitClient: any
+  gitClient: Github
 ): Promise < boolean > => {
   const {
     issue: {
@@ -108,8 +134,25 @@ const handleCommentEdit = async (
     },
   } = reqBody
 
-  if (commentOwner !== 'vtex-io-docs-bot[bot]' || !body.includes(ANSWER_LATER_PATTERN)) {
-    console.log('returning')
+  if (commentOwner !== 'vtex-io-docs-bot[bot]') {
+    return true
+  }
+
+  const {
+    head: {
+      sha,
+    },
+  } = await gitClient.getPR(repoName, prNumber)
+
+  await gitClient.createCommitStatus(
+    repoName,
+    'Forgot to select the reason for not updating docs',
+    'vtex-io/docs-outdated-select',
+    'success',
+    sha
+  )
+
+  if (!body.includes(ANSWER_LATER_PATTERN)) {
     return true
   }
 
@@ -135,7 +178,7 @@ const handleCommentEdit = async (
   let updateContent = readme.content
 
   updateContent +=
-    `${!updateContent.includes('Upcoming docs') ? `\n\n**Upcoming docs:**\n` : ''}` +
+    `${!updateContent.includes('Upcoming documentation') ? `\n\n**Upcoming documentation:**\n` : ''}` +
     `\n - ${issueLinkLabel}`
 
   await gitClient.updateFileContents(
@@ -147,4 +190,13 @@ const handleCommentEdit = async (
   )
 
   return true
+}
+
+const checkDocsChanges = (fileChanges: any) : boolean => {
+  for (const {filename} of fileChanges) {
+    if (filename.includes('docs/')) {
+      return true
+    }
+  }
+  return false
 }

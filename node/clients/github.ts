@@ -1,14 +1,13 @@
 import {
   ExternalClient,
   InstanceOptions,
-  IOContext,
-  IOResponse
+  IOContext
 } from '@vtex/api'
 import * as jwt from 'jsonwebtoken'
 
 export default class Github extends ExternalClient {
-  private PEM =
-    ``
+  private PEM: string = ''
+
   private installationID = 1428901
   private clientID = 38075
   private comitter = {
@@ -22,13 +21,42 @@ export default class Github extends ExternalClient {
     super('https://api.github.com/', context, options)
   }
 
-  public async getPRComments(repo: string, prId: string): Promise < string > {
+  public setAppPEM(pem: string): void {
+    this.PEM = pem
+  }
+
+  public async getPR(repo: string, prId: string): Promise < any > {
+    return this.http.get(`repos/${repo}/pulls/${prId}`, {
+      metric: 'get-pr',
+    })
+  }
+
+  public async getPRComments(repo: string, prId: string): Promise < any > {
     return this.http.get(`repos/${repo}/issues/${prId}/comments`, {
       metric: 'get-pr-comments',
     })
   }
 
-  public async writeComment(repo: string, prId: string, body: string): Promise < string > {
+  public async createCommitStatus(
+    repo: string,
+    description: string,
+    context: string,
+    state: 'error' | 'failure' | 'pending' | 'success',
+    sha: string
+  ): Promise < any > {
+    console.log(`repos/${repo}/statuses/${sha}`)
+    return this.http.post(`repos/${repo}/statuses/${sha}`, {
+      context,
+      description,
+      state,
+    }, {
+      headers: {
+        'Authorization': `token ${await this.getAccessToken(this.installationID)}`,
+      },
+    })
+  }
+
+  public async writeComment(repo: string, prId: string, body: string): Promise < any > {
     return this.http.post(
       `/repos/${repo}/issues/${prId}/comments`, {
         body,
@@ -40,7 +68,7 @@ export default class Github extends ExternalClient {
       })
   }
 
-  public async createNewIssue(repo: string, title: string, body: string, labels ? : [string]): Promise < IOResponse < string >> {
+  public async createNewIssue(repo: string, title: string, body: string, labels ? : [string]): Promise < any> {
     return this.http.post(
       `/repos/${repo}/issues`, {
         body,
@@ -55,21 +83,26 @@ export default class Github extends ExternalClient {
   }
 
   public async getFileContents(repo: string, filePath: string): Promise < any > {
-    const obj = await this.http.get(
+    const {content, sha} = await this.http.get(
       `/repos/${repo}/contents${filePath}`,
       {
         metric: 'read-file',
       }
     )
 
-    console.log(obj)
-    const {content, sha} = obj
-    console.log(`/repos/${repo}/contents${filePath}`)
-
     return {
       content: Buffer.from(content, 'base64').toString(),
       sha,
     }
+  }
+
+  public async getPRFileChanges(repo: string, pr: string): Promise <any> {
+    return this.http.get(
+      `/repos/${repo}/pulls/${pr}/files`,
+      {
+        metric: 'get-pr-files',
+      }
+    )
   }
 
   public async updateFileContents(repo: string, filePath: string, commitMessage: string, content:string, sha:string) {
@@ -98,7 +131,7 @@ export default class Github extends ExternalClient {
     const headers = {
       'Accept': 'application/vnd.github.machine-man-preview+json',
       'Authorization': `Bearer ${this.generateJwtToken()}`,
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json',
     }
 
     const {
