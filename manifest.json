@@ -28,6 +28,9 @@
     },
     {
       "name": "colossus-write-logs"
+    },
+    {
+      "name": "vbase-read-write"
     }
   ],
   "registries": [
