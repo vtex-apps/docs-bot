@@ -2,7 +2,7 @@ import {
   json
 } from 'co-body'
 import Github from '../clients/github'
-import { getAppConfigs } from '../utils/utils';
+import { getAppConfigs } from '../utils/utils'
 
 const ANSWER_LATER_PATTERN = '[x] I'
 let appPem: any = null

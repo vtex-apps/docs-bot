@@ -4,7 +4,7 @@ import {
 } from '../utils/utils'
 
 const VTEX_APPS_ORG = 'vtex-apps'
-let appPem: string | null = null
+let appPem: string = ''
 
 export async function handleSchedule(ctx: Context, next: () => Promise < any > ) {
   ctx.set('cache-control', 'no-cache,no-store')

@@ -4,7 +4,7 @@ import {
   IOContext
 } from '@vtex/api'
 import * as jwt from 'jsonwebtoken'
-import { GithubAuthHeader } from './../typings/global.d'
+import { GithubAuthHeader } from '../typings/global'
 
 export default class Github extends ExternalClient {
   private PEM: string = ''
