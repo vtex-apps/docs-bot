@@ -2,8 +2,9 @@ import { ClientsConfig, LRUCache, Service, ServiceContext } from '@vtex/api'
 
 import { Clients } from './clients'
 import { handleEvent } from './handlers/event'
+import { handleSchedule } from './handlers/schedule'
 
-const TIMEOUT_MS = 800
+const TIMEOUT_MS = 5000
 
 // Create a LRU memory cache for the Status client.
 // The @vtex/api HttpClient respects Cache-Control headers and uses the provided cache.
@@ -41,9 +42,11 @@ declare global {
 export default new Service<Clients, State>({
   clients,
   routes: {
-    // `status` is the route ID from service.json. It maps to an array of middlewares (or a single handler).
     event: [
       handleEvent,
+    ],
+    schedule: [
+      handleSchedule,
     ],
   },
 })

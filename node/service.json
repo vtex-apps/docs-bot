@@ -8,6 +8,10 @@
     "event": {
       "path": "/app/docsbot/event",
       "public": true
+    },
+    "schedule": {
+      "path": "/app/docsbot/schedule",
+      "public": true
     }
   }
 }
