@@ -1,5 +1,3 @@
-import { DocsBotConfigs } from '../typings/global.d'
-
 export const getAppConfigs = async (ctx: Context): Promise <DocsBotConfigs> => {
   return ctx.clients.vbase.getJSON(
     'docs-bot', 'configs'
