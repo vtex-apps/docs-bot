@@ -9,7 +9,7 @@
     "@types/jsonwebtoken": "^8.3.3",
     "@types/node": "8.x",
     "@types/ramda": "types/npm-ramda#dist",
-    "@vtex/api": "3.8.1",
+    "@vtex/api": "3.47.2",
     "tslint": "^5.14.0",
     "tslint-config-vtex": "^2.1.0",
     "typescript": "3.5.2"
