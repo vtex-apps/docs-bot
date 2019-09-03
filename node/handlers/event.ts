@@ -127,6 +127,8 @@ const handleNewPullRequest = async (
       'I noticed you\'re not using the Docs Builder properly yet, '+
       'if you need help to set that up please go to [IO Documentation](https://github.com/vtex-apps/io-documentation)'
     )
+
+    return true
   }
 
   const changedDocs = checkDocsChanges(await gitClient.getPRFileChanges(repoName, prNumber))
