@@ -4,7 +4,7 @@ import {
 import Github from '../clients/github'
 import { getAppConfigs } from '../utils/utils'
 
-const ANSWER_LATER_PATTERN = '[x] I'
+const ANSWER_LATER_PATTERN = '[x] I\'ll'
 let appPem: any = null
 
 export async function handleEvent(ctx: Context, next: () => Promise < any > ) {
