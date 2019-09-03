@@ -4,7 +4,7 @@ import {
 import Github from '../clients/github'
 import { getAppConfigs } from '../utils/utils'
 
-const ANSWER_LATER_PATTERN = '[x] I\'ll'
+const ANSWER_LATER_PATTERN = '[x] I\'ll do it later'
 let appPem: any = null
 
 export async function handleEvent(ctx: Context, next: () => Promise < any > ) {
@@ -30,11 +30,14 @@ export async function handleEvent(ctx: Context, next: () => Promise < any > ) {
 
   if (event === 'pull_request') {
     if (action === 'closed') {
+      ctx.clients.logger.info(body, 'pr closed')
       handleClosedPullRequest(body, ctx.clients.github)
     } else if (action === 'opened') {
+      ctx.clients.logger.info(body, 'pr opened')
       handleNewPullRequest(body, ctx.clients.github)
     }
   } else if (event === 'issue_comment' && action === 'edited') {
+    ctx.clients.logger.info(body, 'pr comment edited')
     handleCommentEdit(body, ctx.clients.github)
   }
 
@@ -55,7 +58,7 @@ const handleClosedPullRequest = async (
       html_url: prUrl,
       merged,
       user: {
-        prOwnerLogin,
+        login: prOwnerLogin,
       },
     },
     repository: {
@@ -113,6 +116,16 @@ const handleNewPullRequest = async (
       full_name: repoName,
     },
   } = reqBody
+
+  try {
+    await gitClient.getFileContents(repoName, '/docs/README.md')
+  } catch (e) {
+    await gitClient.writeComment(
+      repoName,
+      prNumber,
+      'Beep boop :robot:\n\n' +
+      'I noticed you\'re not using the Docs Builder properly yet, if you need help to set that up please go to [IO Documentation](https://github.com/vtex-apps/io-documentation)')
+  }
 
   const changedDocs = checkDocsChanges(await gitClient.getPRFileChanges(repoName, prNumber))
 
