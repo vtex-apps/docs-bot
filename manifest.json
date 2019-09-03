@@ -5,7 +5,7 @@
   "title": "VTEX IO Docs Bot",
   "description": "A bot responsible for VTEX IO documentation scalability",
   "mustUpdateAt": "2020-08-06",
-  "categories": [],
+  "categories": ["bot"],
   "dependencies": {},
   "builders": {
     "node": "4.x",
