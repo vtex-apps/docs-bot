@@ -138,7 +138,7 @@ const handleNewPullRequest = async (
       repoName,
       prNumber,
       'Beep boop :robot:\n\n' +
-      'I noticed you didn\'t make any changes on the documentation\n' +
+      'I noticed you didn\'t make any changes at the `docs/` folder\n' +
       '- [ ] There\'s nothing new to document :thinking:\n' +
       '- [ ] I\'ll do it later :disappointed:\n' +
       '\nIn order to keep track, I\'ll create an issue if you decide now is not a good time\n\n' +
