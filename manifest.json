@@ -1,7 +1,7 @@
 {
   "name": "docs-bot",
   "vendor": "vtex",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "title": "VTEX IO Docs Bot",
   "description": "A bot responsible for VTEX IO documentation scalability",
   "mustUpdateAt": "2020-08-06",
