@@ -1,7 +1,7 @@
 
 # Docs Bot
  
-A Github bot to enhance documentation tracking and awareness
+A Github bot to enhance documentation tracking and awarene
 
 ## Responsibilities 
 
