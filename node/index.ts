@@ -4,7 +4,7 @@ import { Clients } from './clients'
 import { handleEvent } from './handlers/event'
 import { handleSchedule } from './handlers/schedule'
 
-const TIMEOUT_MS = 5000
+const TIMEOUT_MS = 4000
 
 // Create a LRU memory cache for the Status client.
 // The @vtex/api HttpClient respects Cache-Control headers and uses the provided cache.
