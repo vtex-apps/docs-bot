@@ -196,6 +196,14 @@ const handleNewPullRequest = async (
       repoName,
       prNumber,
       'Beep boop :robot:\n\n Thank you so much for keeping our documentation up-to-date :heart:')
+
+    await gitClient.createCommitStatus(
+      repoName,
+      'Docs in track',
+      'vtex-io/docs-outdated-select',
+      'success',
+      sha
+    )
   }
 
   return true
