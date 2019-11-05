@@ -28,6 +28,14 @@ export async function handleEvent(ctx: Context, next: () => Promise < any > ) {
 
   ctx.clients.github.setAppPEM(appPem)
 
+  ctx.vtex.logger.info({
+    body: {
+      action,
+      event_type: event,
+    },
+    subject: 'github event',
+  })
+
   if (event === 'pull_request') {
     if (action === 'closed') {
       ctx.vtex.logger.info({subject: 'pr closed', ...body})
@@ -35,6 +43,9 @@ export async function handleEvent(ctx: Context, next: () => Promise < any > ) {
     } else if (action === 'opened') {
       ctx.vtex.logger.info({subject: 'pr opened', ...body})
       handleNewPullRequest(body, ctx.clients.github)
+    } else if (action === 'synchronize') {
+      ctx.vtex.logger.info({subject: 'pr synchronized', ...body})
+      handleSyncPullRequest(body, ctx.clients.github)
     }
   } else if (event === 'issue_comment' && action === 'edited') {
     ctx.vtex.logger.info({subject: 'comment edited', ...body})
@@ -45,6 +56,35 @@ export async function handleEvent(ctx: Context, next: () => Promise < any > ) {
   ctx.body = 'ok'
 
   await next()
+}
+
+const handleSyncPullRequest = async (
+  reqBody: any,
+  gitClient: Github
+): Promise < void > => {
+  const {
+    pull_request: {
+      number: prNumber,
+      head: {
+        sha,
+      },
+    },
+    repository: {
+      full_name: repoName,
+    },
+  } = reqBody
+
+  const changedDocs = checkDocsChanges(await gitClient.getPRFileChanges(repoName, prNumber))
+
+  if (changedDocs) {
+    await gitClient.createCommitStatus(
+      repoName,
+      'Docs in track',
+      'vtex-io/docs-outdated-select',
+      'success',
+      sha
+    )
+  }
 }
 
 const handleClosedPullRequest = async (
@@ -192,7 +232,7 @@ const handleCommentEdit = async (
 
   await gitClient.createCommitStatus(
     repoName,
-    'Forgot to select the reason for not updating docs',
+    'Justified docs update absence',
     'vtex-io/docs-outdated-select',
     'success',
     sha
