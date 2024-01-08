@@ -19,3 +19,29 @@ Docs Bot currently has two responsibilities:
 - I updated the `README.md` but the bot tells me no changes on documentation where made
 
   Docs Bot doesn't check root `README.md`, instead it checks the one located in `docs/README.md`, to understand why this is important, please refer to: [IO Documentation](https://github.com/vtex-apps/io-documentation).
+
+- The `vtex-io-docs-bot` message didn't show up when the PR was opened and the merge is blocked
+
+  It's possible to force the message by making the following request:
+
+```bash
+printf >&2 '%s: ' 'Repository Name (e.g. vtex-apps/docs-bot)'; read REPO
+printf >&2 '%s: ' 'PR Number (e.g. 44)'; read PR_NUMBER
+printf >&2 '%s: ' 'Commit (e.g. 19aff3cfe9be65e5d4edd326a78255be785b2674)'; read SHA
+
+curl -X POST 'https://vtex.myvtex.com/app/docsbot/event' \
+-H 'x-github-event: pull_request' \
+-H 'Content-Type: application/json' \
+--data '{
+    "action": "opened",
+    "pull_request": {
+        "number": $PR_NUMBER,
+        "head": {
+            "sha": $SHA
+        }
+    },
+    "repository": {
+        "full_name": $REPO
+    }
+}'
+```
